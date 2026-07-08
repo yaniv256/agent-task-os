@@ -130,12 +130,20 @@ Noticing a violation and leaving it is itself the failure — a sync ENDS in a c
   reliable **checklist projection** (structured: every item's text + checked state + counts), never
   ad-hoc DOM scraping, which is unreliable. A task OS that can't reliably read its own checklists is
   broken at the foundation; build the projection if it's missing.
-- **Blocked — every card MUST state WHY it's blocked, and on what.** A card sitting in Blocked with no
-  stated blocker is invalid — nobody (including future-you) can tell what would unblock it. Write the
-  blocker into the card (description or a `Blocked: waiting on X` line). And "unstarted" is not
-  "blocked": a card that simply hasn't begun and depends on nothing belongs in **Backlog**, not Blocked.
-  Blocked means *actively waiting on a specific named thing* (a human answer, a dependency, an external
-  event).
+- **Blocked — a card is Blocked ONLY when it depends on another TASK that must be completed first.**
+  Blocked is a *task-dependency* relationship, not a parking lot. To be in Blocked there must be a
+  concrete unblocking **task** — one that exists (or that you create) on the board — whose completion
+  releases this card. If that task doesn't exist yet, **create it** (e.g. card X blocked → add "Provision
+  the test account that unblocks X" to Backlog) and name it on the blocked card.
+  - **"Waiting on the human" is NOT a valid block.** A card that only needs a person's approval, decision,
+    permission, or go is *not* blocked by a task — it belongs in **Backlog** (or stay In Progress and keep
+    improving what you can). Approval is a review gate, not a dependency. Surface the ask to the human, but
+    don't file the card in Blocked as if a task were pending.
+  - **"Unstarted" is not "blocked."** A card that simply hasn't begun and depends on nothing belongs in
+    Backlog.
+  - So on a sync, for each Blocked card ask: *what task unblocks this, and does it exist?* If the answer is
+    "a person needs to decide/approve," move it to Backlog. If it's a real task, ensure that task is on the
+    board. A Blocked card with no corresponding unblocking task is invalid — fix it, don't leave it sitting.
 
 These are enforcement invariants: on every heartbeat/sync, bring the board *into* this state before you
 resume work — don't just note the drift.
