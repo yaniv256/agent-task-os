@@ -82,6 +82,29 @@ When the store is itself agent-operable (Trello via actions.json), make writes *
 agent** — it dogfoods and hardens the tooling. Verify by the store's **model read**, never a
 screenshot (screenshots can be stale/frozen). Direct reads for verification only.
 
+### 11. The heartbeat — a recurring pull back to the board (so you never stall)
+A memory-less agent stalls: it asks the human a question, the human is away, and it idles instead
+of continuing. The fix is a **heartbeat**: a recurring timer (every ~10 min) that pulls you back
+to the board and makes you **sync + keep walking.** On each beat: read the board by model; enforce
+strict one-in-progress↔reality sync (finished → move to Done + pull the next from Blocked/Backlog;
+blocked/waiting → move the stale card to Blocked + pull a new one from Backlog); update the In
+Progress checklist; **then continue working the In Progress task — do the next checklist item, do
+not just report.** The heartbeat is what makes "always be walking" *automatic* rather than a thing
+you must remember. It's also how you recover from a blocked question: don't wait idle — reroute to
+other backlog work.
+
+**Set it up at the START of every session.** On most agent harnesses a recurring timer is
+**session-only** (dies on restart), so re-create it each session — ideally via a **SessionStart
+hook** so it's automatic. Reference heartbeat prompt (adapt the store/task specifics):
+
+> HEARTBEAT (~10 min): route to the task store; read state by model; enforce one-in-progress↔reality
+> sync (finish→Done→pull next; blocked→Blocked + pull from Backlog); update the checklist; then
+> CONTINUE working the In Progress task (next checklist item, not just a report). Writes via the
+> agent; verify by model. Purpose: never stall — always be walking.
+
+(On Claude Code: `CronCreate` with an off-`:00`/`:30` minute like `4,14,24,34,44,54 * * * *`; wire a
+SessionStart hook to re-create it. Prefer a durable service-side scheduler if the harness offers one.)
+
 ---
 
 ## Part B — The virtues (WHEN to push and switch)
