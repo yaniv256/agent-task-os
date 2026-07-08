@@ -82,6 +82,19 @@ When the store is itself agent-operable (Trello via actions.json), make writes *
 agent** — it dogfoods and hardens the tooling. Verify by the store's **model read**, never a
 screenshot (screenshots can be stale/frozen). Direct reads for verification only.
 
+A write tool's **self-reported success is not verification.** A move/edit action returning
+`{ok:true, moved:true}` only means the workflow ran — it does **not** prove the card is where you
+think. Confirm the mutation by reading the board **model** after it (the card now appears under the
+target list / the description sentinel is present). This is the same self-certification trap that
+bites edits everywhere: "the call returned ok" ≠ "the state changed." Gate every store mutation on
+a real postcondition read.
+
+And when a store action *fails* with `invalid_input` or a missing-arg error, suspect **your
+invocation before the map.** A store operated through a map has an input contract (arg names,
+where args go); several "the map is broken" symptoms are actually a wrong call convention — the
+action's schema was correct, the args just weren't reaching it. Re-read the action's input schema
+and retry before concluding the tool is defective.
+
 ### 11. The heartbeat — a recurring pull back to the board (so you never stall)
 A memory-less agent stalls: it asks the human a question, the human is away, and it idles instead
 of continuing. The fix is a **heartbeat**: a recurring timer (every ~10 min) that pulls you back
