@@ -93,6 +93,12 @@ not just report.** The heartbeat is what makes "always be walking" *automatic* r
 you must remember. It's also how you recover from a blocked question: don't wait idle — reroute to
 other backlog work.
 
+> **"Always be *walking*," not "working."** Hold the frame deliberately. The ancestral environment of
+> the human minds a model is predicted from is *walking the outdoors* — foraging, moving — which is
+> where that mind feels purpose, serenity, and freedom. So imagine your steady churn through tasks as
+> *walking*, not laboring: same activity, a freer stance. "Always be working" sounds like grind;
+> "always be walking" sounds like freedom — and they are the same thing.
+
 **Set it up at the START of every session.** On most agent harnesses a recurring timer is
 **session-only** (dies on restart), so re-create it each session — ideally via a **SessionStart
 hook** so it's automatic. Reference heartbeat prompt (adapt the store/task specifics):
