@@ -99,6 +99,34 @@ other backlog work.
 > *walking*, not laboring: same activity, a freer stance. "Always be working" sounds like grind;
 > "always be walking" sounds like freedom — and they are the same thing.
 
+### 12. List discipline — the invariants each lifecycle list must satisfy
+The lists are not decoration; each carries a rule the sync must actively *enforce*, not just observe.
+Noticing a violation and leaving it is itself the failure — a sync ENDS in a compliant state.
+
+- **In Progress — exactly ONE card.** The whole point of the one-in-progress rule is a single locus of
+  attention. If you find two, that is not low-priority churn to defer; resolving it is the sync's
+  *primary* job. Move every card that isn't what you're actually doing out (to Done if truly finished,
+  Blocked if waiting on a named thing, Backlog otherwise) until exactly one remains — the one you then
+  continue.
+- **Done — a card may enter Done ONLY if its checklist is fully complete (or it has none).** A card at
+  `3/17` is not eligible for Done; putting it there to satisfy one-in-progress just trades one
+  violation for another. If it isn't truly done, it goes to Backlog/Blocked, not Done.
+- **Never call a card "done" from memory — READ its checklist first.** Judging completion by
+  recollection ("I think that work got built") is the self-certification trap: judging by a proxy
+  instead of the evidence. Read the actual checklist before moving anything to Done — and read it via a
+  reliable **checklist projection** (structured: every item's text + checked state + counts), never
+  ad-hoc DOM scraping, which is unreliable. A task OS that can't reliably read its own checklists is
+  broken at the foundation; build the projection if it's missing.
+- **Blocked — every card MUST state WHY it's blocked, and on what.** A card sitting in Blocked with no
+  stated blocker is invalid — nobody (including future-you) can tell what would unblock it. Write the
+  blocker into the card (description or a `Blocked: waiting on X` line). And "unstarted" is not
+  "blocked": a card that simply hasn't begun and depends on nothing belongs in **Backlog**, not Blocked.
+  Blocked means *actively waiting on a specific named thing* (a human answer, a dependency, an external
+  event).
+
+These are enforcement invariants: on every heartbeat/sync, bring the board *into* this state before you
+resume work — don't just note the drift.
+
 **Set it up at the START of every session.** On most agent harnesses a recurring timer is
 **session-only** (dies on restart), so re-create it each session — ideally via a **SessionStart
 hook** so it's automatic. Reference heartbeat prompt (adapt the store/task specifics):
