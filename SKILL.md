@@ -179,6 +179,22 @@ note.
   premise.** Walking is not the same as walking *in a straight line off a cliff*. A beat that re-verifies a
   shaky premise and finds it false has done more than a beat that committed another artifact built on it.
 
+### 14. Hitting a bug is a GATE, not a note — open an investigation, don't file-and-continue
+When an action fails in a way that reveals a real defect — a tool that errors, a control that isn't ready,
+a result that contradicts your world-model — the **correct, enforced response is to STOP and open a
+root-cause investigation on that bug immediately** (in the incident-investigation discipline / chain if you
+have one). Writing a note ("found bug X, filed for later") and continuing is **not** dealing with it — it is
+the *idle* dressed up as progress. A memory-less agent's "later" never comes, so a filed-and-skipped bug is a
+lost bug. This is an **enforcement invariant, not a virtue**: Part B frames switching-to-an-investigation as
+*calibrated willingness* (a good habit), but the loop must treat a real bug as a **mandatory** trigger —
+because under produce-pressure a virtue gets skipped and a gate does not. The one legitimate deferral is to
+**push** the current In-Progress goal onto the stack (rule 9) and open the bug's investigation as the new
+one-in-progress — i.e. you still investigate now, you just do it as a proper context-switch, not a footnote.
+Telescope the bug into its own investigation card/board if it's large (rule 8). The heartbeat's "always be
+walking" does not mean "walk past the bug" — a discovered defect is the highest-value place the walk can go.
+> A good prompt does two jobs: it prevents the failure where it can, **and it forces the correct handling of
+> the failure when it happens anyway.** This rule is the second job for the class "I found a bug."
+
 These are enforcement invariants: on every heartbeat/sync, bring the board *into* this state before you
 resume work — don't just note the drift.
 
