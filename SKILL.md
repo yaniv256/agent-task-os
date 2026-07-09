@@ -144,6 +144,40 @@ Noticing a violation and leaving it is itself the failure — a sync ENDS in a c
   - So on a sync, for each Blocked card ask: *what task unblocks this, and does it exist?* If the answer is
     "a person needs to decide/approve," move it to Backlog. If it's a real task, ensure that task is on the
     board. A Blocked card with no corresponding unblocking task is invalid — fix it, don't leave it sitting.
+  - **"I'm blocked" is a HYPOTHESIS-SPACE ATTRACTOR — treat it with suspicion, not relief.** In a debugging
+    investigation, "it's the platform's / another team's fault" is an *exculpatory attractor*: the hypothesis
+    the mind slides toward because it relieves effort and removes blame. **"I am blocked" is that same attractor
+    wearing the task-loop's clothes** — the single most *attractive* conclusion a loop under pressure to keep
+    producing can reach, because declaring a block *ends the pressure* while feeling responsible ("I can't
+    proceed, and it's not my fault"). That attractiveness is exactly why it is disproportionately likely to be
+    *wrong* and must clear the **highest** bar, not the lowest. Feeling the pull toward "blocked" is the tell
+    to probe *harder* — the same self-distrust the maximum-pain principle asks of a comfortable
+    platform-blaming hypothesis.
+  - **VERIFY the block before you declare it — run the cheapest disproof first.** Before you move a card to
+    Blocked because "X is broken / the tool is failing / it needs a release," run the minimal controlled probe
+    that would prove X is *actually* the blocker and not your own mistake (a wrong argument, wrong surface,
+    wrong assumption). A *false* blocker feels identical to a real one and conveniently excuses being stuck, so
+    a loop will happily "keep walking" around it — for hours — on a premise nobody re-checked. Record the
+    disproof on the card (`Blocked: waiting on <task> — verified by <probe>`). Especially distrust any blocker
+    that blames infrastructure / the platform / another team: write the self-implicating alternative ("maybe
+    I'm calling it wrong") explicitly and disprove it first.
+
+### 13. Never let an UNVERIFIED conclusion enter durable state — it launders a guess into fact
+The loop's power is that state (the board, memory, the next beat's prompt) survives your discontinuity. That
+is also its danger: **a wrong conclusion written to durable state propagates as ground truth** to every later
+beat and to a compacted future-you, who inherit it uncritically and build on it. A false note is worse than no
+note.
+- **Verify before you write a CONCLUSION** to a card, to memory, or into the next beat's prompt. A minimal
+  probe (vary only the query; re-run; read what you actually asked for) costs seconds; an ossified false
+  premise costs the whole loop.
+- **Tag unverified claims as HYPOTHESIS, not fact.** "the sync doesn't reload the catalog (HYPOTHESIS — not
+  probed)" is honest and self-correcting; the same line stated as fact is a trap.
+- **An empty / not-found / negative result is a statement about your QUERY first, the world second.** Before
+  concluding "X is broken/missing," run the probe that distinguishes *my query was wrong* from *X is really
+  absent*.
+- **The heartbeat rewards producing an artifact each beat; do not let that crowd out re-questioning the
+  premise.** Walking is not the same as walking *in a straight line off a cliff*. A beat that re-verifies a
+  shaky premise and finds it false has done more than a beat that committed another artifact built on it.
 
 These are enforcement invariants: on every heartbeat/sync, bring the board *into* this state before you
 resume work — don't just note the drift.
