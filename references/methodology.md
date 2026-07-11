@@ -90,6 +90,32 @@ a single in-progress goal can and should carry a large checklist.
 
 This is the loop. Everything else supports keeping this loop clean.
 
+### 4.5. Finish/block sync gate
+Whenever a task is finished or blocked, **sync the board before doing anything else.** The
+board is the durable truth; if the conversation says one thing and the board says another,
+the next memory-less agent will trust the board and resume wrong.
+
+If a task is finished:
+
+1. Read the checklist/proof state from the board model.
+2. Move the card to **Done** only when completion is verified.
+3. If proof is missing, keep it out of Done and record exactly what proof is missing.
+
+If a task is blocked:
+
+1. Move the parent card from **In Progress** to **Blocked**.
+2. Write the blocker(s) on the parent card: what is blocked, what unblocks it, and links to
+   evidence/commits/logs.
+3. Create a separate unblocker card for each blocker. If the blocker is a bug, create an
+   **Investigation:** card for that bug and make its first checklist item either the
+   investigation file path or creating that file.
+4. Move exactly one unblocker/investigation card into **In Progress** and work it.
+5. When the unblockers are resolved, pop the parent card back from **Blocked** to
+   **In Progress** and resume from its saved context.
+
+Never leave a card in **In Progress** while telling the user it is blocked. That is not a
+minor bookkeeping issue; it corrupts the operating system's process table.
+
 ### 5. Offload-for-focus
 When the user **dumps new tasks mid-work**, have the browser agent **add each one to the
 Backlog** and **keep working the current task.** Trello absorbs the incoming flow so you

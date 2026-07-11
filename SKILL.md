@@ -44,6 +44,32 @@ large checklist.
 ### 4. The core cycle
 > pick a goal → move it to In Progress → break it into a checklist → check items off.
 
+### 4.5. Finish/block sync gate — the board MUST match reality before you continue
+Whenever you believe a task is **finished**, **blocked**, or **cannot proceed because you found a
+bug/dependency**, stop normal work and reconcile the external store immediately. This is a hard
+gate, not an end-of-turn cleanup item.
+
+If the task is finished:
+
+1. Read the card's checklist/proof state from the store model.
+2. If completion is verified, move the card to **Done**.
+3. If completion is not verified, leave it out of Done and record what proof is missing.
+
+If the task is blocked:
+
+1. Move the current In Progress card to **Blocked**.
+2. Write the exact blocker(s) on the blocked card: what is blocking it, what would unblock it, and
+   links to any evidence/commits/logs.
+3. For each blocker that is itself work, create a separate unblocker card. If the blocker is a
+   bug, create a separate **Investigation:** card for that bug.
+4. Each investigation card must cite its investigation file or say that creating the file is its
+   first checklist item.
+5. Put only one unblocker/investigation into **In Progress** and continue with that. Leave the
+   original parent blocked until its blockers are resolved, then pop it back to In Progress.
+
+Never leave a card in **In Progress** while telling the user it is blocked. That desynchronizes
+the only durable state the next memory-less agent can trust.
+
 ### 5. Offload-for-focus
 When new tasks arrive mid-work, add each to the **Backlog** and keep working the current task.
 The store absorbs the incoming flow so nothing is lost and you don't get distracted. Do not
