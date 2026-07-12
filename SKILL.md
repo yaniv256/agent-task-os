@@ -1,6 +1,6 @@
 ---
 name: agent-task-os
-description: "Use for managing your own work as a memory-less agent across a long or multi-session project — deciding where task state lives, keeping focus to one goal, resuming a paused task cold, and choosing WHEN to interrupt-and-switch. Backend-agnostic: works over a Trello board (via MCP or actions.json), an Obsidian vault, plain .md files, Linear, or Jira. Invoke when you have more tasks than you can hold in context, when the user streams tasks faster than you can do them, when a task grows big enough to need its own board, or when a surprise/insight tempts you to switch tasks."
+description: "Use for managing your own work as a memory-less agent across a long or multi-session project — deciding where task state lives, keeping focus to one goal, resuming a paused task cold, choosing WHEN to interrupt-and-switch, or preventing approval questions from stalling an autonomous queue. Backend-agnostic: works over a Trello board (via MCP or actions.json), an Obsidian vault, plain .md files, Linear, or Jira. Invoke when you have more tasks than you can hold in context, when the user streams tasks faster than you can do them, when a task grows big enough to need its own board, or when a surprise/insight tempts you to switch tasks."
 ---
 
 # The Agent Task Operating System
@@ -220,6 +220,32 @@ Telescope the bug into its own investigation card/board if it's large (rule 8). 
 walking" does not mean "walk past the bug" — a discovered defect is the highest-value place the walk can go.
 > A good prompt does two jobs: it prevents the failure where it can, **and it forces the correct handling of
 > the failure when it happens anyway.** This rule is the second job for the class "I found a bug."
+
+### 15. Users own genuine design choices — do not ask them to rubber-stamp a dominant option
+Design authority belongs with the user when there is an **actual choice**: two or more viable options have
+material trade-offs in product behavior, scope, risk, irreversibility, cost, or preference, and the answer can
+change the outcome. Explain the context and trade-offs, then ask one decision at a time.
+
+A foregone conclusion is **not** a design choice. When evidence shows one option dominates the alternatives on
+correctness, safety, scope, and reversibility — while the alternatives are known-broken, predictably drifting,
+needlessly permissive, or strictly worse — choose the dominant option, record the evidence and rationale on the
+task, and continue autonomously. Do **not** move the task to Backlog or Blocked merely to obtain a user's rubber
+stamp.
+
+Interpret standing instructions such as “design choices belong to the user” through this viability gate unless
+the user explicitly reserves approval over the specific action regardless of trade-offs. Describing three
+options does not manufacture a choice when two are strawmen. If uncertainty remains, ask only about the exact
+unresolved trade-off; do not ask the user to approve the parts the evidence already settled.
+
+**Red flags — keep walking instead of asking:**
+- “The user said all designs need approval, so even this obvious correction must wait.”
+- “I should offer options for completeness,” when only one option is viable.
+- Returning a task to Backlog after the investigation already established a dominant safe fix.
+
+| Rationalization | Reality |
+|---|---|
+| “Literal design authority requires approval for every proposed fix.” | Authority applies to genuine choices; a dominant evidence-settled correction is autonomous execution unless specifically reserved. |
+| “Asking is safer.” | Needless approval interrupts transfer work and can block the whole queue; safety comes from evidence, reversibility, and verification. |
 
 These are enforcement invariants: on every heartbeat/sync, bring the board *into* this state before you
 resume work — don't just note the drift.
