@@ -62,7 +62,7 @@ Agent Kanban keeps task state truthful while letting an agent execute continuous
 - R12. An investigation enters Done only after every applicable remediation phase is implemented and directly verified.
 - R13. Checked analysis phases, documentation, honest failure reporting, accepted limitations, or follow-up cards cannot satisfy R12.
 - R14. CE Compound runs after implementation verification but before the card enters Done.
-- R15. CE Compound defaults to Lightweight and escalates for security or production incidents, repeated failures, cross-cutting work, likely documentation overlap, or an explicit instruction.
+- R15. CE Compound defaults to Lightweight. Use Standard/Full for repeated failures, cross-component/repository scope, likely documentation overlap, or explicit Full requests. Use Deep for security/privacy/data-loss/production incidents or explicit Deep requests. The deepest applicable trigger wins.
 - R16. A legitimate no-learning result satisfies the compounding gate, while execution failure opens an investigation and keeps the original card out of Done.
 
 ### Queue Flow
