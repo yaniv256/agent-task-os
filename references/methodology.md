@@ -98,7 +98,10 @@ the next memory-less agent will trust the board and resume wrong.
 If a task is finished:
 
 1. Read the checklist/proof state from the board model.
-2. Run the required CE Compound closure after completion is verified.
+2. Run the required CE Compound closure after completion is verified. Lightweight is the ordinary default;
+   Standard/Full handles repeated, cross-component/repository, overlap-prone, or explicitly Full work; Deep
+   handles security, privacy, data-loss, production incidents, or explicit Deep requests. The deepest applicable
+   trigger wins.
 3. Move the card to **Done** only when completion and closure are verified.
 4. If proof is missing, keep it out of Done and record exactly what proof is missing.
 

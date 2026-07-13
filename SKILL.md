@@ -97,9 +97,7 @@ itself. The checklist can certify that analysis phases ran while the product def
 For every completed work card, run CE Compound after implementation and verification succeed but before moving the card to Done. The closure phase deposits reusable learning while context is fresh; it does not replace the
 task's tests, release gates, or live proof.
 
-- **Depth policy:** Lightweight is the default compounding depth. Escalate to Full or Deep for security,
-  privacy, data-loss, or production incidents; repeated failures; cross-component or cross-repository work;
-  likely overlap or conflict with existing solution documents; or an explicit card/user instruction.
+- **Depth policy:** Lightweight is the default compounding depth. Use Deep for security, privacy, data-loss, or production incidents. Use Standard/Full for repeated failures; cross-component or cross-repository work; likely overlap or conflict with existing solution documents; or an explicit request for Full. An explicit request for Deep selects Deep. When more than one trigger applies, the deepest required level wins. `standard` is the non-interactive selector's name for the Full workflow; do not leave “Full or Deep” to agent judgment after a trigger is known.
 - **No rubber stamp:** Apply those triggers deterministically. Ask only when a real unresolved trade-off can
   change the depth; do not pause for approval when the policy already resolves it.
 - **Non-interactive contract:** Use CE Compound's supported non-interactive depth selector. When the installed
