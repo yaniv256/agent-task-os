@@ -122,6 +122,25 @@ If a task is blocked:
 Never leave a card in **In Progress** while telling the user it is blocked. That is not a
 minor bookkeeping issue; it corrupts the operating system's process table.
 
+#### Closure evidence is stronger than checklist completion
+
+Done is an evidence transition, not a checkbox transition. For an investigation, read its
+remediation artifact and map every applicable immediate, structural, systemic, documentation,
+test, release, migration, and live-verification phase to direct proof. Depending on the phase,
+that proof is a committed change, a passing test, a released or deployed artifact, or a live
+verification at the affected boundary. Checked analysis, a documented failure, an accepted limitation, or a follow-up card does not substitute for remediation. An artifact still marked
+`CURRENT`, `OPEN`, `deferred`, or `awaiting remediation` contradicts Done until newer evidence
+proves every declared phase complete.
+
+CE Compound runs only after that implementation/remediation proof is complete. A legitimate no-learning result is a successful closure outcome: record it and allow Done. A CE Compound execution failure is a bug, not a no-learning result. Keep the original card out of Done, move it
+to Blocked with a linked investigation, remediate and verify the failure, then rerun CE Compound
+successfully before the original can close.
+
+Example: ordinary verified work uses Lightweight and may close after a recorded no-learning result.
+A cross-repository production-incident remediation uses Deep because the deepest trigger wins. If
+Deep fails to execute, the original remains Blocked while the failure investigation becomes the
+active goal; the original returns to Next only after that blocker is fully remediated.
+
 ### 5. Offload-for-focus and queue authority
 When the user **dumps new tasks mid-work**, have the browser agent **add each one to the
 Next** with one executor label and one High, Normal, or Low priority label, then **keep working
