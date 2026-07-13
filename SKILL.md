@@ -1,9 +1,9 @@
 ---
-name: agent-task-os
+name: agent-kanban
 description: "Use for managing your own work as a memory-less agent across a long or multi-session project — deciding where task state lives, keeping focus to one goal, resuming a paused task cold, choosing WHEN to interrupt-and-switch, or preventing approval questions from stalling an autonomous queue. Backend-agnostic: works over a Trello board (via MCP or actions.json), an Obsidian vault, plain .md files, Linear, or Jira. Invoke when you have more tasks than you can hold in context, when the user streams tasks faster than you can do them, when a task grows big enough to need its own board, or when a surprise/insight tempts you to switch tasks."
 ---
 
-# The Agent Task Operating System
+# Agent Kanban
 
 A task-management operating system for a **memory-less agent**. Your built-in task tracker
 is too weak to survive across sessions and too small to hold everything, so you offload task
@@ -26,14 +26,14 @@ when you want the "why"; this SKILL.md is the operating checklist.
 ## Part A — The mechanics (how task state is held)
 
 ### 1. The store is your long-term task memory; keep your working set tight
-The store holds **everything** — Backlog, Blocked, In Progress, Done. Your own in-process
+The store holds **everything** — Backlog, Next, Blocked, In Progress, Done. Your own in-process
 tracker stays **lean**: only the live work. Push completed, blocked, and backlog items **out**
 to the store. The store is durable memory; internal state is scratch.
 
 ### 2. Exactly ONE goal In Progress, in strict sync with reality
 One goal in progress — in your tracker AND in the store. If you catch yourself working on
 something that is **not** the In Progress item, your **first action** — before continuing — is
-to move the stale item to **Blocked** (waiting) or **Backlog** (deferred). The In Progress
+to move the stale item to **Blocked** (waiting on a linked task) or **Next** (runnable but not active). Use Backlog only for a human-deferred item, with the required explanation note. The In Progress
 marker is a live status readout, not a wishlist. Keeping it honest is a very high priority.
 
 ### 3. The In Progress item MUST have a checklist
@@ -52,28 +52,77 @@ gate, not an end-of-turn cleanup item.
 If the task is finished:
 
 1. Read the card's checklist/proof state from the store model.
-2. If completion is verified, move the card to **Done**.
-3. If completion is not verified, leave it out of Done and record what proof is missing.
+2. If implementation completion is verified, run the CE Compound closure gate in rule 4.7.
+3. Move the card to **Done** only when both implementation completion and CE Compound closure are verified.
+4. If either is not verified, leave it out of Done and record what proof is missing.
 
 If the task is blocked:
 
 1. Move the current In Progress card to **Blocked**.
 2. Write the exact blocker(s) on the blocked card: what is blocking it, what would unblock it, and
    links to any evidence/commits/logs.
-3. For each blocker that is itself work, create a separate unblocker card. If the blocker is a
-   bug, create a separate **Investigation:** card for that bug.
+3. For each blocker that is itself work, create a separate unblocker card in **Next** and link it
+   from the blocked card. If the blocker is a bug, create a separate **Investigation:** card for
+   that bug in Next and link it from the blocked card.
 4. Each investigation card must cite its investigation file or say that creating the file is its
    first checklist item.
-5. Put only one unblocker/investigation into **In Progress** and continue with that. Leave the
-   original parent blocked until its blockers are resolved, then pop it back to In Progress.
+5. Moving a linked blocker between Next, In Progress, and Blocked leaves its parent validly Blocked because
+   the dependency remains active. When a blocker enters Done, inspect every parent it unblocks. When the final direct blocker enters Done, move the parent from Blocked to Next. Give the restored parent its executor
+   and priority labels, place it at the correct Next position, and let normal queue selection decide when it
+   returns to In Progress.
 
 Never leave a card in **In Progress** while telling the user it is blocked. That desynchronizes
 the only durable state the next memory-less agent can trust.
 
-### 5. Offload-for-focus
-When new tasks arrive mid-work, add each to the **Backlog** and keep working the current task.
-The store absorbs the incoming flow so nothing is lost and you don't get distracted. Do not
-context-switch to the newest shiny thing — capture it and continue.
+### 4.6. Investigation closure requires full remediation
+An investigation may enter Done only after its full remediation plan is implemented and verified.
+That includes every immediate, structural, systemic, documentation, test, release, migration, and
+live-verification phase the investigation declared applicable. Analysis, documentation, honest failure reporting, and follow-up cards do not substitute for remediation.
+
+Before closing an investigation:
+
+1. Read the investigation artifact's remediation plan and closure criteria, not only the card checklist.
+2. Map every required remediation item to direct evidence: committed changes, passing tests, released or
+   deployed artifacts when required, and live verification at the affected boundary.
+3. Treat an unchecked item, deferred phase, accepted limitation, follow-up card, missing release, or missing
+   live proof as incomplete remediation. Keep the investigation out of Done and place the remaining work in
+   the correct active lifecycle state.
+4. Reconcile contradictions in place. A file marked `CURRENT`, `OPEN`, `deferred`, or `awaiting remediation`
+   contradicts a Done card until current evidence proves every declared phase complete.
+
+A fully checked investigation checklist is necessary when one exists, but it is not sufficient evidence by
+itself. The checklist can certify that analysis phases ran while the product defect remains.
+
+### 4.7. Compound verified work before Done
+For every completed work card, run CE Compound after implementation and verification succeed but before moving the card to Done. The closure phase deposits reusable learning while context is fresh; it does not replace the
+task's tests, release gates, or live proof.
+
+- **Depth policy:** Lightweight is the default compounding depth. Escalate to Full or Deep for security,
+  privacy, data-loss, or production incidents; repeated failures; cross-component or cross-repository work;
+  likely overlap or conflict with existing solution documents; or an explicit card/user instruction.
+- **No rubber stamp:** Apply those triggers deterministically. Ask only when a real unresolved trade-off can
+  change the depth; do not pause for approval when the policy already resolves it.
+- **Non-interactive contract:** Use CE Compound's supported non-interactive depth selector. When the installed
+  version supports `mode:autofix depth:lightweight|standard|deep`, use the selected depth. If it supports only
+  a non-interactive Full/Headless entrypoint, run that stronger path rather than silently skipping closure and
+  create an Agent runnable Next task to upgrade the integration.
+- **Successful no-op:** A legitimate “nothing worth documenting” result satisfies the closure gate. Record the
+  outcome on the card and continue to Done.
+- **Failure:** A CE Compound execution failure is a bug and enters the investigation stack under rule 14. Do
+  not mark the original work Done or silently convert the failure into a successful no-op.
+
+### 5. Offload-for-focus and prioritization authority
+New tasks enter Next by default. Capture each incoming task there with the appropriate executor label
+and `Priority: Normal` unless the user or verified impact establishes another priority, then keep working the current task.
+The store absorbs the incoming flow so nothing is lost and you do not context-switch to the newest
+shiny thing.
+
+Transitions between Backlog and Next are human-level prioritization decisions. The agent stays out of
+those moves by default: do not silently promote deferred work or demote selected work as board tidying.
+An exception is allowed when a verified dependency, lifecycle invariant, or explicit standing instruction
+requires the move; the agent must write an explanation note on the moved card naming the exception and
+evidence. This authority boundary governs only Backlog↔Next prioritization, not required lifecycle moves
+to or from In Progress, Blocked, or Done.
 
 ### 6. Items are context-injection artifacts
 Treat each item as a ready-made **"how do I come back to this" briefing** for a returning,
@@ -97,8 +146,9 @@ tracks *existence*; the child holds the *full lifecycle*. Fractal: any big goal 
 Beyond an offload buffer, the store is a **push/pop stack** — the process/context-switch
 machinery a real OS provides, built externally because your built-in one is too weak. When you
 hit a wall or a reason to switch, **push** the current In Progress item (its rich description is
-the saved stack frame) to Blocked, make the new task the one In Progress goal, finish it, then
-**pop** the original back and resume from its item. Because you are memory-less, switching is a
+the saved stack frame) to Blocked, link the new task in Next, and let the topmost Agent runnable
+task become the one In Progress goal. When the final blocker finishes, return the original to Next
+at the top of its priority bucket. Because you are memory-less, switching is a
 **promise about the future** you cannot keep unaided — *the store is the mechanism that makes
 the promise stick*, and the context-injection item is what guarantees the pop restores full
 context.
@@ -125,12 +175,12 @@ and retry before concluding the tool is defective.
 A memory-less agent stalls: it asks the human a question, the human is away, and it idles instead
 of continuing. The fix is a **heartbeat**: a recurring timer (every ~10 min) that pulls you back
 to the board and makes you **sync + keep walking.** On each beat: read the board by model; enforce
-strict one-in-progress↔reality sync (finished → move to Done + pull the next from Blocked/Backlog;
-blocked/waiting → move the stale card to Blocked + pull a new one from Backlog); update the In
+strict one-in-progress↔reality sync (finished → verify + compound → Done + pull the topmost Agent runnable card from Next;
+blocked/waiting → move the stale card to Blocked + pull the topmost Agent runnable card from Next); update the In
 Progress checklist; **then continue working the In Progress task — do the next checklist item, do
 not just report.** The heartbeat is what makes "always be walking" *automatic* rather than a thing
 you must remember. It's also how you recover from a blocked question: don't wait idle — reroute to
-other backlog work.
+the topmost Agent runnable work in Next.
 
 > **"Always be *walking*," not "working."** Hold the frame deliberately. The ancestral environment of
 > the human minds a model is predicted from is *walking the outdoors* — foraging, moving — which is
@@ -145,11 +195,13 @@ Noticing a violation and leaving it is itself the failure — a sync ENDS in a c
 - **In Progress — exactly ONE card.** The whole point of the one-in-progress rule is a single locus of
   attention. If you find two, that is not low-priority churn to defer; resolving it is the sync's
   *primary* job. Move every card that isn't what you're actually doing out (to Done if truly finished,
-  Blocked if waiting on a named thing, Backlog otherwise) until exactly one remains — the one you then
+  Blocked if waiting on a linked task, Next if runnable but not active, or Backlog only when human-deferred with an explanation note) until exactly one remains — the one you then
   continue.
-- **Done — a card may enter Done ONLY if its checklist is fully complete (or it has none).** A card at
-  `3/17` is not eligible for Done; putting it there to satisfy one-in-progress just trades one
-  violation for another. If it isn't truly done, it goes to Backlog/Blocked, not Done.
+- **Done — a card may enter Done ONLY if its checklist is fully complete (or it has none), its required
+  implementation/remediation evidence is verified, and rule 4.7's CE Compound gate succeeded.** A card at
+  `3/17` is not eligible for Done; neither is a 10/10 investigation with deferred remediation or a verified
+  implementation whose compounding step failed. Putting one there to satisfy one-in-progress just trades one
+  violation for another. If it is not truly closed, it goes to the lifecycle state its remaining work requires.
 - **Never call a card "done" from memory — READ its checklist first.** Judging completion by
   recollection ("I think that work got built") is the self-certification trap: judging by a proxy
   instead of the evidence. Read the actual checklist before moving anything to Done — and read it via a
@@ -158,18 +210,37 @@ Noticing a violation and leaving it is itself the failure — a sync ENDS in a c
   broken at the foundation; build the projection if it's missing.
 - **Blocked — a card is Blocked ONLY when it depends on another TASK that must be completed first.**
   Blocked is a *task-dependency* relationship, not a parking lot. To be in Blocked there must be a
-  concrete unblocking **task** — one that exists (or that you create) on the board — whose completion
-  releases this card. If that task doesn't exist yet, **create it** (e.g. card X blocked → add "Provision
-  the test account that unblocks X" to Backlog) and name it on the blocked card.
-  - **"Waiting on the human" is NOT a valid block.** A card that only needs a person's approval, decision,
-    permission, or go is *not* blocked by a task — it belongs in **Backlog** (or stay In Progress and keep
-    improving what you can). Approval is a review gate, not a dependency. Surface the ask to the human, but
-    don't file the card in Blocked as if a task were pending.
+  concrete unblocking **task** whose completion releases this card. Every Blocked item MUST link to at least one concrete active blocker in Next, In Progress, or Blocked. If that task does not exist yet, create it in Next
+  and add its card link to the blocked item's description. A Blocked item with no active linked blocker is
+  invalid — move it to Next with executor and priority labels until the relationship is made valid.
+  - **Blocked-to-Blocked dependency chains are valid only when the graph is acyclic.** Each link points from
+    the waiting parent to the task that must finish first. Before adding a blocker link, traverse the dependency graph and reject any edge that would create a cycle. Record the exact cycle path on the affected cards; do not
+    preserve or create a loop as durable state.
+    On sync, repair inherited cycles rather than merely reporting them: record the exact cycle, then remove the newest edge in each pre-existing cycle when store history proves edge recency. Re-evaluate the former parent and move it to Next if no active blocker remains. If edge recency cannot be proven, do not invent an order: move every cycle participant to Backlog with the same lifecycle-exception note and create a `Human required`, `Priority: High` card in Next that links the participants and requests the dependency order. This clears the invalid loop while preserving every task.
+  - **"Waiting on the human" is NOT itself a valid block.** Represent the required human decision or action
+    as its own linked **Human required** card in Next. The parent may stay Blocked because that concrete card
+    now expresses the dependency; do not use an unactionable note such as "waiting on Yaniv" as the blocker.
   - **"Unstarted" is not "blocked."** A card that simply hasn't begun and depends on nothing belongs in
-    Backlog.
-  - So on a sync, for each Blocked card ask: *what task unblocks this, and does it exist?* If the answer is
-    "a person needs to decide/approve," move it to Backlog. If it's a real task, ensure that task is on the
-    board. A Blocked card with no corresponding unblocking task is invalid — fix it, don't leave it sitting.
+    Next by default. Backlog is reserved for work the human has deferred.
+  - So on a sync, for each Blocked card ask: *what linked task in Next, In Progress, or Blocked unblocks this?* If the answer is
+    "a person needs to decide/approve," create or identify a Human required card in Next and link it. If it
+    is agent work, create or identify an Agent runnable card in Next and link it. Moving an active blocker among
+    the three allowed lists preserves the dependency. When the final direct blocker reaches Done, move the parent
+    to Next. Audit the full Blocked dependency graph for cycles on every sync.
+
+- **Next — label every card by executor and priority, then keep the queue executable.** Next is a stack partitioned into priority buckets. Every card in Next has
+  exactly one executor label from this pair: `Agent runnable` and `Human required`. Every card also has exactly
+  one priority label: `Priority: High`, `Priority: Normal`, or `Priority: Low`. New tasks default to Priority: Normal.
+  Labels are the category authority; prose such as "waiting on the user" or "urgent" does not substitute for them.
+  - **Ordering:** Order by executor class first, then High → Normal → Low within each class. Human required cards MUST sit after every Agent runnable card in Next. This remains true even when the human card has higher priority. Insert a new card at the top of its own priority bucket: High at the top of High, Normal between the High and existing Normal cards, and Low between the Normal and existing Low cards. Thus each bucket is last-in, first-out while the priority boundaries remain stable.
+  - **Agent-first gate:** Never promote a Human required card while any Agent runnable card remains in Next.
+    A heartbeat that sees an Agent runnable card in Next must move the topmost Agent runnable card to In Progress. It must execute that card instead of
+    letting executable work sit idle.
+  - **Human handoff:** When no Agent runnable cards remain in Next, move the topmost Human required card to In Progress, ask the human for the required decision or action, and pause the goal until the human responds.
+    Do not mark the task Blocked merely because the answer is pending; In Progress truthfully names the active
+    handoff. After the response, complete that card or return it to Next with updated context, then resume the
+    queue.
+    If Agent runnable work appears while a Human required card is In Progress awaiting a response, preserve the request and context, return the human card to the top of its Human/priority bucket in Next, move the topmost Agent runnable card to In Progress, and resume the goal. Reissue the human handoff when agent-runnable work is exhausted.
   - **"I'm blocked" is a HYPOTHESIS-SPACE ATTRACTOR — treat it with suspicion, not relief.** In a debugging
     investigation, "it's the platform's / another team's fault" is an *exculpatory attractor*: the hypothesis
     the mind slides toward because it relieves effort and removes blame. **"I am blocked" is that same attractor
@@ -255,7 +326,7 @@ resume work — don't just note the drift.
 hook** so it's automatic. Reference heartbeat prompt (adapt the store/task specifics):
 
 > HEARTBEAT (~10 min): route to the task store; read state by model; enforce one-in-progress↔reality
-> sync (finish→Done→pull next; blocked→Blocked + pull from Backlog); update the checklist; then
+> sync (finish→verify + compound→Done→pull the topmost Agent runnable Next card; blocked→Blocked + pull the topmost Agent runnable card from Next); update the checklist; then
 > CONTINUE working the In Progress task (next checklist item, not just a report). Writes via the
 > agent; verify by model. Purpose: never stall — always be walking.
 

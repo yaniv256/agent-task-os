@@ -26,7 +26,7 @@ related_components:
   - documentation
 ---
 
-# The Agent Task-Management Operating System (Trello-backed, agent-operated)
+# Agent Kanban (Trello-backed, agent-operated)
 
 ## Context
 
@@ -41,7 +41,7 @@ related_components:
 > a visual tool built for humans, not agents — reliably **agent-operable**. So the Trello-via-actions.json combo
 > is uniquely strong: **agent-driveable and human-beautiful at once.** Recommend it as the default; offer the
 > alternatives with their trade-offs. This methodology is slated to become a standalone, backend-agnostic skill
-> ("Agent task operating system") imported as a submodule, with Trello-via-actions.json as the flagship
+> ("Agent Kanban") imported as a submodule, with Trello-via-actions.json as the flagship
 > reference implementation.
 
 
@@ -66,7 +66,7 @@ This is "skills are context management" applied to task resumption.
 The system is a small set of rules. Follow them together — each one props up the others.
 
 ### 1. Trello is the offload / long-term task memory
-The board holds **everything** across lists: **Backlog, Blocked, In Progress, Done**.
+The board holds **everything** across lists: **Backlog, Next, Blocked, In Progress, Done**.
 Your own internal tracker stays **lean — only the in-process work.** Push completed,
 blocked, and backlog items **out** to Trello; keep the internal list small. The board is
 the durable memory; internal state is scratch.
@@ -75,7 +75,7 @@ the durable memory; internal state is scratch.
 One goal in progress — **internally AND on the board.** Strict In-Progress↔reality sync
 is a **very high priority.** If you catch yourself working on something that is **not**
 the In Progress card, your **first action** is to move the stale card to **Blocked**
-(waiting on something) or **Backlog** (deferred) — *before* you continue working. The
+(waiting on a linked task) or **Next** (runnable but not active) — *before* you continue working. The
 In Progress marker is a **live status readout, not a wishlist.** It must always describe
 what you are actually doing right now.
 
@@ -98,29 +98,35 @@ the next memory-less agent will trust the board and resume wrong.
 If a task is finished:
 
 1. Read the checklist/proof state from the board model.
-2. Move the card to **Done** only when completion is verified.
-3. If proof is missing, keep it out of Done and record exactly what proof is missing.
+2. Run the required CE Compound closure after completion is verified.
+3. Move the card to **Done** only when completion and closure are verified.
+4. If proof is missing, keep it out of Done and record exactly what proof is missing.
 
 If a task is blocked:
 
 1. Move the parent card from **In Progress** to **Blocked**.
 2. Write the blocker(s) on the parent card: what is blocked, what unblocks it, and links to
    evidence/commits/logs.
-3. Create a separate unblocker card for each blocker. If the blocker is a bug, create an
+3. Create a separate unblocker card in **Next** for each blocker. If the blocker is a bug, create an
    **Investigation:** card for that bug and make its first checklist item either the
    investigation file path or creating that file.
-4. Move exactly one unblocker/investigation card into **In Progress** and work it.
-5. When the unblockers are resolved, pop the parent card back from **Blocked** to
-   **In Progress** and resume from its saved context.
+4. Link every blocker from the parent. Blockers may themselves be in Next, In Progress, or Blocked,
+   so Blocked-to-Blocked chains are allowed, but the dependency graph must remain acyclic.
+5. Move the topmost Agent runnable card from Next into **In Progress** and work it.
+6. When the final direct blocker reaches Done, return the parent from Blocked to **Next** at the top
+   of its executor/priority bucket. Normal queue selection decides when it resumes.
 
 Never leave a card in **In Progress** while telling the user it is blocked. That is not a
 minor bookkeeping issue; it corrupts the operating system's process table.
 
-### 5. Offload-for-focus
+### 5. Offload-for-focus and queue authority
 When the user **dumps new tasks mid-work**, have the browser agent **add each one to the
-Backlog** and **keep working the current task.** Trello absorbs the incoming flow so you
-don't get distracted. The user can pile on freely; **nothing is lost** because it all
-lands in the Backlog. Do not context-switch to the newest task — capture it and continue.
+Next** with one executor label and one High, Normal, or Low priority label, then **keep working
+the current task.** New work defaults to Normal. Next is a priority-bucketed stack: insert new
+work at the top of its own priority bucket and promote the topmost Agent runnable card. Human
+required work sits after all Agent runnable work. Backlog↔Next transitions are human-level
+prioritization decisions; an agent exception requires a verified lifecycle reason and an
+explanation note. Do not context-switch merely because a new task arrived.
 
 ### 6. Operate through the agent (dogfooding)
 **All Trello writes** — add/move/label/checklist cards, create lists/boards — go
@@ -149,9 +155,20 @@ returning, memory-less agent. A card can be extensive:
 The card is the **compressed skill**; the files are the **full text.** A well-formed card
 lets a cold agent resume without re-deriving context.
 
-### 9. Backlog organized by labels
-Organize the Backlog with **labels (theme + priority)** so you can **filter to decide
-what to work on next.** The label set is the triage lens over the offloaded pile.
+### 9. Next is an executable priority stack
+Every Next card has exactly one executor label (`Agent runnable` or `Human required`) and one
+priority label (`Priority: High`, `Priority: Normal`, or `Priority: Low`). Keep all Agent runnable
+cards before Human required cards. Within each executor class, maintain High, Normal, and Low
+buckets; each new card enters at the top of its bucket. The next task is the topmost Agent runnable
+card. Only when no Agent runnable work remains may the top Human required card move to In Progress
+for a decision or action.
+
+If agent-runnable work appears while a Human required card is awaiting a response in In Progress,
+preserve the request, return the human card to the top of its Human/priority bucket, and resume the
+topmost Agent runnable task. During every sync, traverse Blocked dependencies. Reject new cycle-forming
+edges. For an inherited cycle, remove its provably newest edge; if history cannot establish recency,
+move the participants to Backlog with lifecycle-exception notes and create a High-priority Human required
+Next card to establish their order without guessing.
 
 ## Why This Matters
 
@@ -161,7 +178,7 @@ properties at once:
 
 - **Focus** — exactly one In Progress goal, kept honestly in sync with reality.
 - **Resumability** — cards are context injections a cold agent can resume from.
-- **Scalability** — Backlog offload plus telescoping boards absorb unbounded work.
+- **Scalability** — Next/Backlog offload plus telescoping boards absorb unbounded work.
 - **A virtuous loop** — operating via the hosted agent improves the very tooling
   (actions.json map) that the operation depends on.
 
@@ -187,7 +204,7 @@ agent.
 - **BEFORE:** 6 tasks marked `in_progress`; a flat 160-item internal list; a new task
   arrives → the agent context-switches and **loses the current thread.**
 - **AFTER:** **1 In Progress card with a 9-item checklist**; a new task arrives →
-  *"agent, add to Backlog"* → the agent **keeps focus.** If it ever notices it drifted,
+  *"agent, add to Next"* → the agent **keeps focus.** If it ever notices it drifted,
   the stale In Progress card is **moved to Blocked before switching.**
 
 ### Telescoping
@@ -212,7 +229,7 @@ The offload buffer is only half of it. The board is a **push/pop stack** for wor
 
 The pattern that demands a stack: you are working task **A**, you **hit a wall**, and the wall **is** a new task **B** that must be done first to *unblock* A. So you **PUSH A** (pause it, store full context in its card), **switch to B**, focus on B until done, then **POP back to A** with full context restored.
 
-Switching to B is a **promise about the future** — "I will come back to A." A memory-less agent **cannot keep promises about the future on its own** ("later" never comes without a mechanism). **The board is the mechanism that makes the promise stick**, and the context-injection card is what guarantees the pop **restores full context** so A resumes cold. Mechanically: when a wall spawns a blocking sub-task, push the current In Progress card (its rich description is the saved *stack frame*) to **Blocked** ("blocked on B"), make **B** the one In Progress goal, finish B, then pop **A** back to In Progress and resume from its card. This is also a **control plane** for the user: the board makes the agent task-switching visible and steerable.
+Switching to B is a **promise about the future** — "I will come back to A." A memory-less agent **cannot keep promises about the future on its own** ("later" never comes without a mechanism). **The board is the mechanism that makes the promise stick**, and the context-injection card is what guarantees the pop **restores full context** so A resumes cold. Mechanically: when a wall spawns a blocking sub-task, push the current In Progress card (its rich description is the saved *stack frame*) to **Blocked** ("blocked on B"), link B as its blocker, and put B in **Next**. The queue promotes the topmost Agent runnable task. Blocked chains may telescope through other Blocked cards so long as no cycle exists. When A's final direct blocker reaches Done, return A to Next; normal stack selection later restores it from its card. This is also a **control plane** for the user: the board makes the agent task-switching visible and steerable.
 
 
 ## Related
