@@ -169,6 +169,18 @@ where args go); several "the map is broken" symptoms are actually a wrong call c
 action's schema was correct, the args just weren't reaching it. Re-read the action's input schema
 and retry before concluding the tool is defective.
 
+### 10.1. Transport Markdown literally across shell CLIs
+Markdown is data, not shell syntax. When creating or editing GitHub PRs, issues, comments, or
+other records whose body contains Markdown, write the exact body to a literal file and pass it
+with the CLI's `--body-file` (or equivalent file-input flag). Use a quoted heredoc delimiter or
+`apply_patch` so backticks, `$()` expressions, braces, and paths are never evaluated by a shell.
+
+Never embed an untrusted or multi-line Markdown body inside a double-quoted `--body "..."`
+argument, `$(cat ...)`, an unquoted heredoc, or a shell `echo`. Before claiming success, read the
+remote body back and compare it with the literal source file. If command substitution already
+ran, treat the incident as a bug: preserve the corrupted output as evidence, rewrite from a
+literal file, and add a regression note before continuing.
+
 ### 11. The heartbeat — a recurring pull back to the board (so you never stall)
 A memory-less agent stalls: it asks the human a question, the human is away, and it idles instead
 of continuing. The fix is a **heartbeat**: a recurring timer (every ~10 min) that pulls you back
