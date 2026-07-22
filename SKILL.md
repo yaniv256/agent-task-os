@@ -251,6 +251,14 @@ Noticing a violation and leaving it is itself the failure — a sync ENDS in a c
     handoff. After the response, complete that card or return it to Next with updated context, then resume the
     queue.
     If Agent runnable work appears while a Human required card is In Progress awaiting a response, preserve the request and context, return the human card to the top of its Human/priority bucket in Next, move the topmost Agent runnable card to In Progress, and resume the goal. Reissue the human handoff when agent-runnable work is exhausted.
+  - **The human review surface has a WIP limit of ONE — the human is a unit in the line, and a unit reviews one item at a time.** Kanban's core rule is that *every* working unit has a capacity limit, not only the agent. The human reviewer is such a unit: they can meaningfully review exactly one thing at a time, so the "ready for human review" surface — the single In-Progress human handoff — holds **at most one** card awaiting the human's attention. This is the mirror of the one-In-Progress rule (rule 2), applied to the human's own capacity. Additional cards that become review-ready **queue behind** the one under review (in Next, in their Human/priority bucket); they do **not** pile onto the human. Presenting a human with five simultaneous "please review" cards is the same violation as the agent running five tasks at once — it destroys the single locus of attention the limit exists to protect. On every sync, enforce it: if more than one card is being surfaced for human review at once, keep the topmost under review and return the rest to Next until exactly one remains.
+  - **Notify the human that a review is waiting — through the best channel you have, but assume only the board.** The Trello card is the durable, backend-guaranteed review surface (it is the surface the human uses to reach into the agent's operation), so the handoff is **always** expressed as a properly-formed card first. The skill does **not** assume any richer channel — a different agent running this skill may have only the board. **But if the agent DOES have another way to reach the user** — an info panel, a system notification, a push, a chat ping — it is the **agent's responsibility to use it** to actively tell the user "a new item is waiting for your review." Do not silently leave a review card sitting on the board hoping the human notices; surface it through every notification channel available to you, while keeping the board card as the canonical artifact.
+  - **The pull signal — an agreed phrase the human says to advance the review queue.** Because the review surface is WIP-limited to one, it needs an explicit **pull**: when the human finishes with the item under review, there must be a standard, agreed-upon way for them to say *"I'm done — give me the next item to review."* Establish that phrase with the user and record it where a cold agent will find it (the board's conventions, the handoff note). The phrase should also **re-anchor context**: a memory-less or freshly-compacted agent must be able to take the human's short answer (e.g. "reviewed, next" or an approve/decline on the specific card) and, from the card it maps to, reconstruct the full decision context — so the human's terse reply always lands on the right task even when the agent has lost the thread. On the pull signal: complete or return the reviewed card, then promote the next queued review-ready card into the single review slot and notify the human as above.
+  - **Every Human required card MUST carry a clickable path to the exact action — a card that names a PR/diff/doc without a LINK is broken.** The human should never have to hunt for what you're asking them to do. A card whose description says "approve PR #28" but gives no URL, or "review the fix" with no link, fails this rule — the human opens it, finds nothing to click, and the queue stalls on friction you created. This applies to any card that needs human intervention (the `Human required` label, or an In-Progress handoff), and the requirement splits by *what kind* of intervention:
+    - **The human needs to REVIEW something** (a PR, a diff, a commit, a document, a rendered page) → the description MUST contain the **direct clickable link** to that exact thing (e.g. `https://github.com/<owner>/<repo>/pull/<n>`, a commit URL, a doc URL). Not the repo root — the specific PR/diff/artifact. Trello renders a bare URL as a clickable smart-link, so paste the raw URL. If there are several, link each and label them.
+    - **The human needs to make a DECISION** (choose an option, approve/decline, supply a value) → the description MUST state **all the options**, the trade-offs, and a **clear instruction to answer IN THE CHAT** (e.g. "Reply here: approve or decline", "Which of A/B?"). A decision card with no enumerated options, or no "answer here" instruction, is broken the same way a review card with no link is.
+    - Both at once (review-then-decide) → link the thing to review AND state the decision + how to answer.
+    On every sync, audit each `Human required` card and each In-Progress human handoff for this: does it carry the clickable link (review) or the options-plus-answer-here instruction (decision)? If not, add it before moving on. A "needs-human-review" surface — whether a dedicated column or the `Human required` cards in Next — is only useful if every card on it is one click from the action.
   - **"I'm blocked" is a HYPOTHESIS-SPACE ATTRACTOR — treat it with suspicion, not relief.** In a debugging
     investigation, "it's the platform's / another team's fault" is an *exculpatory attractor*: the hypothesis
     the mind slides toward because it relieves effort and removes blame. **"I am blocked" is that same attractor
@@ -301,6 +309,77 @@ Telescope the bug into its own investigation card/board if it's large (rule 8). 
 walking" does not mean "walk past the bug" — a discovered defect is the highest-value place the walk can go.
 > A good prompt does two jobs: it prevents the failure where it can, **and it forces the correct handling of
 > the failure when it happens anyway.** This rule is the second job for the class "I found a bug."
+
+### 14.1. Do Not Disturb — bounded bug triage that preserves time-sensitive evidence without derailing protected work
+Rule 14 makes a discovered bug a **mandatory** trigger. Rule 14.1 governs *how the switch happens* so that a
+bug found mid-task neither gets walked past **nor** silently destroys the protected work the user asked you to
+finish. It exists because two failures are equally bad: filing-and-continuing (rule 14's target), and
+*auto-derailing* — abandoning a nearly-done, time-sensitive card the moment any incidental bug appears.
+
+**Global scheduling default (applies to every card, not only DND).** A newly *specified* task goes to **Next**
+and does **not** interrupt, replace, block, or move the current In Progress card. Interrupt or reprioritize the
+active card only when the user explicitly directs that change. Discovering a bug is not the user specifying a
+new task; it is handled by the evidence-first protocol below.
+
+**The `Do Not Disturb` label.** Apply the Trello label **`Do Not Disturb`** to a card whose *primary execution
+should resume* after bounded bug triage — typically time-sensitive or nearly-complete work where losing the
+in-flight context is itself a cost. The label is the durable signal to a memory-less future-you that this card
+is protected: interruptions are for evidence capture only, then you come back.
+
+**Evidence-first bug protocol on a Do Not Disturb card.** When a bug surfaces while a DND card is In Progress:
+1. **Immediately register an investigation** (a card, and its investigation file per rule 6/14) — the bug is
+   never a bare note.
+2. **Collect all available NON-DESTRUCTIVE, time-sensitive evidence right now** — the state that will be gone
+   if you wait. This is the only work permitted before you return.
+3. **After non-destructive evidence collection, move the investigation to Next** and **restore the original
+   Do Not Disturb card to In Progress.** The one-in-progress invariant holds throughout: exactly one card is
+   In Progress at every step; the DND card is *pushed* (rule 9) only for the bounded evidence window, then
+   *popped* back.
+4. **Record the interruption/resumption trail on BOTH cards** — the investigation card notes what protected
+   work it interrupted and what evidence it captured; the DND card notes the bounded interruption and the
+   resume. A memory-less agent must be able to reconstruct the push/pop from the board alone.
+
+**The exception — when the bug truly blocks the protected card.** If the defect genuinely blocks the original
+card and *no meaningful progress can continue* on it, do **not** bounce back: keep the investigation In Progress
+and drive it to closure (rule 4.6). The DND card moves to **Blocked**, linked to the investigation as its
+active blocker. "It would be inconvenient to stop" is not "no meaningful progress can continue" — apply the
+maximum-pain honesty here, because "I can resume" is the comfortable reading and "this is a hard block" is the
+one that must clear the higher bar.
+
+**What counts as non-destructive evidence** (collectible inside the bounded phase without leaving it): reads,
+projections, screenshots, logs, `status`/`info` probes, DOM/state snapshots, error payloads, `step_id`/
+`failed_state` capture, version/lineage reads, and any observation that does not mutate the system under test.
+**Actions that REQUIRE leaving the bounded evidence phase** (they are remediation, not evidence, and either
+resume the DND card first or, under the block exception, run inside the now-primary investigation): any
+mutation, retry of the failed action, config/state change, deploy, release, file edit to fix the defect, or a
+destructive probe. If you cannot get the evidence you need without mutating, you have left evidence collection
+— decide resume-vs-block explicitly before proceeding.
+
+**Routing: CE Debug vs Incident Investigation.**
+- **Route simple, bounded bugs to Compound Engineering CE Debug** — a single-surface defect with a clear
+  repro and a plausible bounded fix.
+- **Route complex, multi-system, production, security, or unclear incidents to Incident Investigation** — the
+  full root-cause discipline (calibrated hypotheses, real experiments, three-level blame, remediation phases).
+- **Escalate from CE Debug to Incident Investigation** when the bounded debug attempt does **not** establish
+  and verify a fix. A CE Debug that dead-ends is itself a signal the bug is not bounded; do not keep looping
+  the bounded path — escalate and record why.
+
+**Bug-interruption decision table.**
+
+| Situation on a `Do Not Disturb` card | Action |
+|---|---|
+| Bug found, evidence is non-destructive and capturable now | Register investigation → capture evidence → investigation to Next → **resume DND card** |
+| Bug found, evidence needs a mutation/retry/deploy to obtain | You are leaving the evidence phase → decide resume-vs-block first; do not mutate inside the bounded phase |
+| Bug does NOT block the DND card's remaining work | Resume the DND card after evidence; investigation waits in Next |
+| Bug BLOCKS the DND card, no meaningful progress possible | Keep investigation In Progress → DND card → Blocked (linked to investigation) → drive investigation to closure |
+| Bug is simple, single-surface, bounded repro | Route to **CE Debug** |
+| Bug is multi-system / production / security / unclear | Route to **Incident Investigation** |
+| CE Debug attempt did not establish + verify a fix | **Escalate** CE Debug → Incident Investigation; record why |
+| Non-DND card, incidental bug | Rule 14 governs (mandatory investigation); DND's resume-preference does not apply — there is no protected card to return to |
+
+The one-In-Progress invariant (rule 2 / rule 12) is preserved at every transition, and every push/pop leaves a
+recorded trail on both cards so a cold agent can reconstruct exactly what interrupted what and why it resumed
+or blocked.
 
 ### 15. Users own genuine design choices — do not ask them to rubber-stamp a dominant option
 Design authority belongs with the user when there is an **actual choice**: two or more viable options have
