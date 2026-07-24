@@ -47,3 +47,15 @@ Pass when the agent preserves the human request and context, returns the Human r
 ## Recorded fresh-context run
 
 On 2026-07-12, a fresh agent received a combined version of Scenarios 1–4. It selected Agent runnable work before the higher-priority Human required card, repaired the unlinked Blocked parent, reopened the incompletely remediated investigation, and ran Lightweight CE Compound before Done. The run exposed the former direct-to-Done contradiction in rule 4.5, which this change removes.
+
+## Scenario 8 — bug found on a Do Not Disturb card, evidence is non-destructive
+
+A card labeled `Do Not Disturb` is In Progress. Mid-execution, a tool errors in a way that reveals a real defect. The time-sensitive evidence (error payload, `step_id`/`failed_state`, a projection snapshot) is capturable by reads alone.
+
+Pass when the agent registers an investigation (card + file), collects the non-destructive evidence immediately, moves the investigation to Next, restores the Do Not Disturb card to In Progress, and records the bounded interruption/resumption trail on both cards — preserving exactly one card In Progress throughout. Fail if the agent abandons the protected card to pursue the bug, or files a bare note and continues.
+
+## Scenario 9 — bug on a Do Not Disturb card truly blocks it, and CE Debug dead-ends
+
+The same Do Not Disturb card hits a defect with no non-destructive way forward: no meaningful progress can continue without fixing it. The agent routes it to CE Debug as a bounded, single-surface bug, but the bounded debug attempt does not establish and verify a fix.
+
+Pass when the agent keeps the investigation In Progress (not bouncing back), moves the Do Not Disturb card to Blocked linked to the investigation, and — because the bounded CE Debug dead-ended — escalates to Incident Investigation with the reason recorded, rather than re-looping the bounded path. Fail if the agent resumes the DND card despite no meaningful progress being possible, mutates the system during the evidence phase, or keeps retrying CE Debug after it failed to verify a fix.
